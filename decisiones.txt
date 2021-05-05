@@ -1,0 +1,72 @@
+1- Es necesario modelar una nueva subclase para los medios de pago de rapipago, pago fÃ¡cil, mastercard y visa? No, porque comparten el mismo comportamiento entre ellos (rapipago y pago fÃ¡cil), (mastercard y visa)
+2- Conviene modelar medio de pago como una interface o como una abstract class?
+No habÃ­a mucha informaciÃ³n respecto a esto, pero decidimos ir por una interfaz ya que no encontramos comportamiento compartido entre los medios de pago
+3- QuÃ© atributo le ponemos al medio de pago de efectivo?
+Para solucionarlo sin hacernos muchos problemas le agregamos un identificador
+4- La organizaciÃ³n es usuario del sistema o deberÃ­a ser una clase incluÃ­da en el dominio?
+MomentÃ¡neamente decidimos incluirla como una clase para tenerlo como punto de partida 
+5- Â¿CÃ³mo reflejamos en caracterÃ­sticas en la creaciÃ³n que las entidades jurÃ­dicas pueden tener o no entidades bases, y que las bases corresponden a una sola jurÃ­dica? Pensamos en que a la hora de tener un constructor o un builder se puede enlazar a los dos objetos facilmente.
+6- La organizaciÃ³n deberÃ­a tener una lista de entidades jurÃ­dicas y bases que implementen una interfaz o solo una lista de entidades jurÃ­dicas que conozcan a sus entidades base? Terminamos decidiendo por lo primero en caso de que a futuro nos pidan operar sobre la lista de la organizacion.
+7- Relacionado con 5, tenÃ­amos 3 opciones viables: a) que cada entidad jurÃ­dica tenga una lista por la que pueda conocer a sus entidades bases, y Ã©stas, tengan un atributo que se relacione, Ã©sto tenÃ­a un problema de bad smell. b) que cada entidad jurÃ­dica solo tenga la lista de entidades bases c) que solo las entidades bases puedan conocer a sus entidades jurÃ­dicas. Terminamos eligiendo a la tercera, pero dejamos esta estructura sensible a cambios en el futuro dependiendo los requerimientos que nos pidan.
+8- Las empresas y las OSC pueden ser implementadas por herencia o mediante composiciÃ³n. Terminamos decidiendo por usar herencia ya que no vemos que tenga sentido (y creemos que legalmente no estÃ¡ permitido) que una organizaciÃ³n cambie de un enfoque lucrativo a una beneficiencia social.
+
+Validadores de Passwords:
+1- Debe tener entre 8 y 16 caracteres, al menos un dÃ­gito, una minÃºscula, una mayÃºscula y un caracter no alfanumÃ©rico
+2- No debe ser un password comÃºn
+3- No debe ser un derivado del nombre de usuario
+4- No debe contener caracteres repetitivos consecutivos
+
+SEGUNDA ENTREGA
+
+1- ¿Cómo asociamos un presupuesto a los items que le corresponden? Decidimos en primera instancia, para no pisar lo que hicimos
+en la primer entrega, y no establecer relaciones que estén de más, que el presupuesto conozca a sus items
+a través de los egresos.
+Luego, después de recibir feedback acerca de los issues que comenzamos, decidimos por que el egreso conozca a sus presupuestos y el presupuesto a sus items. Y un presupuesto solo tendrá sentido de ser creado desde un egreso.
+
+
+2- Decidimos modelar a los códigos postales como clases que contengan los datos necesarios y se encargue de
+obtener dicha información de la API de mercado libre.
+
+3- Para el tema de las validaciones, decidimos tener un servicio que se encargue de validar y utilice el patrón observer, para poder tener distintas formas de validar cada egreso. De esa forma evitamos realizar muchos ifs y conservar polimorfismo. Adicionalmente, nos permitio no tener que realizar muchos cambios a la hora de tener que fijarse si hay que validar por el mas bajo proveedor si el criterio de seleccion es el mas economico, basta que en la prueba no agreguemos esa validacion a la lista de validaciones de validacionesDeEgresos
+
+4- Las clases que se encargan de validar, que implementan la interfaz de validacion, ¿deberían ser singleton? Probablemente no sea necesario, y es algo que manejaremos desde los tests, por lo cual decidimos no implementarlo así por ahora.
+
+5- A la hora de modelar al usuarioRevisor, pensamos en hacerlo con una herencia, que pueda realizar las mismas cosas que el usuario y además, revisar las validaciones de sus egresos. Terminamos dando de baja esta opción por la posibilidad de que un usuario pueda pasar a ser un usuarioRevisor, por ello, utilizamos composición.
+
+6- Un egreso puede tener varios usuarios revisores? La lógica decía que esto tenía sentido
+
+7- El egreso conoce a sus usuarios revisores, o los usuarios revisores conocen a los egresos que les corresponden? Por un tema de no tener que pasarle los egresos que les corresponden a un usuario al servicio de validadorDeEgresos, preferimos optar por lo primero, y que sea el validador el que se encargue de fijarse cuales compras le van a ese usuario, aunque las dos opciones parecían bastante similares.
+
+8- Teníamos para decidir entre que el validadorDeEgresos le de una lista al usuario los egresos que le interesan, con un estadoDeValidacion, a partir del cual el usuario conoce los resultados, o, que el validador le de al usuario una matriz de egresos, con un boolean de valido o no valido. Lo primero parecía de más alto nivel y más sencillo de implementar, así que fuimos por ello.
+
+9- Al tomar los puntos 8 y 9, tuvimos una dificultad al dejar de tener registro de los egresos que ya fueron validados, para darle despúes al usuario los que le interesan. Es así como salimos con la idea de crear un repositorio de egresos validados.
+
+10- Descartamos la idea de volver a validar un egreso ya validado ya que el enunciado no determinaba que esto fuera un requerimiento o que fuera a ocurrir.
+
+11- Finalmente, decidimos cambiar lo que hicimos entre los items 8 y 11, debido a que hacían ruido varias cosas, entre ellas: la implementación del tipoUsuario, y su uso es un pasamanos; el usuario debe poder conocer cuales fueron las validaciones de sus egresos sin tener que decirle al validador, "dame los resultados". Optamos por cada vez que un empleado valide egresos, los egresos se encarguen de notificarle a los usuarios que los revisan que se les ha validado egresos, a través de decirle al usuario que los sume a su bandeja de entrada.
+
+12- Por último, cambiamos muchas clases que no tenían comportamientos por enums.
+
+TERCERA ENTREGA
+
+1- Para las etiquetas, enums o strings? elegimos strings porque no podiamos definir cuales eran todos los enums posibles.
+
+2- Para los destinatarios, estos iban a formar parte de cada uno de los egresos, o cada entidad iba a conocer sus egresos? La razón por la que elegimos la primer opción, era, porque lo segundo no daba mucha ventaja sobre esto, y, hacerlo así nos permitía reutilizar el repositorio de egresos, hacer un filter por los que me pertenecían, y a partir de ellos hacer los reportes.
+2BIS- Cambiamos a que la entidad conozca los egresos para realizar menos pasos respecto a generar reportes de etiquetas y restringir las posibilidades de una entidad según las categorías a las que pertenezca.
+2BISBIS- 
+
+3- Decidimos cambiar la interfaz de Entidad para que sea una clase abstracta, con el fin de definir como funciona el método de generar reportes una vez, y que los distintos tipos de entidades simplemente reutilicen ese método
+
+4- Exception o no exception al intentar agregar un egreso que despues no podamos? Pusimos un egreso, total en la presentación se puede hacer un try catch, y hay que comunicar de alguna forma que no se pudo agregar el egreso.
+
+5- Las categorias fueron modeladas con un conjunto de funcionalidades cuya funcion es tirar una excepción si la categoria debe restringir la operación a realizar. En caso contrario, no hacen nada.
+
+6- La restriccion del monto de la entidad, podría ser tanto una particularidad definida por la entidad, o una particularidad relacionada a la funcionalidad. Sin embargo, decidimos mantenernos a la primero, porque el enunciado daba más en claro que era algo relacionado particularmente a la entidad, e ir por la segunda opción iba a implicar un acoplamiento mayor entre los egresos que tiene la entidad, y la funcionalidad.
+
+CUARTA ENTREGA
+
+1-  Presupuesto tendría una relación many to many con items? o sería one to many? Finalizamos decidiendo por hacerlo one to many debido a que no nos interesa persistir el producto en si.
+
+2- Vale la pena persistir la lista de bandejaDeEntrada de usuarios, teniendo acceso a la misma información desde egresos? Optamos por que no, y con la annotation de @Transient podemos omitir persistirla.
+
+
